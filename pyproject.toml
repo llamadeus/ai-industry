@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "anomaly detection for contamination detection in water networks"
+version = "0.1.0"
+description = ""
+authors = ["Marc Thieme <marcthieme2403@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pandas = "^2.2.3"
+numpy = "^2.1.3"
+seaborn = "^0.13.2"
+notebook = "^7.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
