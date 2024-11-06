@@ -1,0 +1,8 @@
+services:
+  jupyter:
+    build:
+      context: .
+    volumes:
+      - .:/app
+    ports:
+      - 8888:8888
