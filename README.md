@@ -3,12 +3,6 @@
 ## Current TODOs
 - Discuss the topic with the tutor and the teacher (get a written confirmation)
 
-## Docker
-In order to run the project in Docker, you can use the `docker compose` command.
-```shell
-docker compose up -d
-```
-
 ## Exam
 We have to
 - deliver the project code
@@ -21,3 +15,9 @@ The **evaluattion** will depend on the **choices we made**, how we **interpreted
 
 # Building & Development
 Commands managed in `justfile`. For more information, visit [their docs](https://just.systems/man/en/introduction.html).
+
+## Docker
+In order to run the project in Docker, you can use the `docker compose` command.
+```shell
+docker compose up -d
+```
