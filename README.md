@@ -3,6 +3,12 @@
 ## Current TODOs
 - Discuss the topic with the tutor and the teacher (get a written confirmation)
 
+## Docker
+In order to run the project in Docker, you can use the `docker compose` command.
+```shell
+docker compose up -d
+```
+
 ## Exam
 We have to
 - deliver the project code
