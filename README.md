@@ -4,7 +4,6 @@
 - Discuss the topic with the tutor and the teacher (get a written confirmation)
 
 ## Exam
-
 We have to
 - deliver the project code
 - give a presentation
