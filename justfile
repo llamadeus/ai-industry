@@ -6,6 +6,10 @@ silent := '>/dev/null 2>&1'
 install:
     poetry install
 
+setup: install
+    poetry run nbdime config-git --enable # Enables better git-diffing for notebooks
+    poetry run nbdime extensions --enable # Enables diffing in jupyterlab
+
 # Run the jupyterlab dev environment
 lab: install
     cd notebooks && poetry run jupyter notebook {{silent}} &
