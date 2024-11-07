@@ -11,8 +11,8 @@ lab: install
     cd notebooks && poetry run jupyter notebook {{silent}} &
 
 # Run the jupyterlab within Docker
-lab-docker:
-    cd notebooks && poetry run jupyter notebook --allow-root --ip=0.0.0.0
+lab-docker: install
+    cd notebooks && poetry run jupyter notebook --allow-root --ip=0.0.0.0 {{silent}} &
 
 [script]
 kill-lab port="":
