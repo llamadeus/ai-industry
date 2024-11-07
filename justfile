@@ -19,3 +19,6 @@ kill-lab port="":
     if ! poetry run jupyter notebook stop {{port}}; then
         echo 'Please provide the port of the server you want to kill as parameter'
     fi
+
+test: 
+    poetry run pytest 'notebooks/util/util.py'
