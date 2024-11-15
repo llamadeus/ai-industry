@@ -27,7 +27,7 @@ kill-lab port="":
 
 # Choose a file to open in the running lab instance
 [script("bash")]
-choose-notebook browser="open":
+choose-notebook browser="open": lab
     choice=$(find notebooks/ -type f -name "*.ipynb" -not -path "*/.*/*" | fzf --sort) # List notebooks ignoring hidden folders
     eval $(poetry run jupyter notebook list --json | jq -r '"token=\(.token) url=\(.url)"') # Get token and url of server
     http_encoded_choice=${choice// /%20}
