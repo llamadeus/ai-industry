@@ -23,5 +23,13 @@ kill-lab port="":
         echo 'Please provide the port of the server you want to kill as parameter'
     fi
 
+# Choose a file to open in the running lab instance
+[script("bash")]
+choose-notebook browser="open":
+    choice=$(find notebooks/ -type f -name "*.ipynb" -not -path "*/.*/*" | fzf --sort) # List notebooks ignoring hidden folders
+    eval $(poetry run jupyter notebook list --json | jq -r '"token=\(.token) url=\(.url)"') # Get token and url of server
+    http_encoded_choice=${choice// /%20}
+    {{browser}} "${url}${http_encoded_choice}?token=${token}"
+
 test: 
     poetry run pytest 'notebooks/util/util.py'
