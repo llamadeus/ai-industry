@@ -11,8 +11,10 @@ setup: install
     poetry run nbdime extensions --enable # Enables diffing in jupyterlab
 
 # Run the jupyterlab dev environment
-lab *options: install
-    poetry run jupyter notebook --notebook-dir=notebooks {{options}} {{silent}} &
+lab *options:
+    # Only start new instance if none is running
+    test -z "$(poetry run jupyter notebook list --json)" \
+        && poetry run jupyter notebook --notebook-dir=notebooks {{options}} {{silent}} &
 
 # Run the jupyterlab within Docker
 lab-docker: (lab "--allow-root" "--ip=0.0.0.0")
