@@ -11,12 +11,11 @@ setup: install
     poetry run nbdime extensions --enable # Enables diffing in jupyterlab
 
 # Run the jupyterlab dev environment
-lab: install
-    cd notebooks && poetry run jupyter notebook {{silent}} &
+lab *options: install
+    poetry run jupyter notebook --notebook-dir=notebooks {{options}} {{silent}} &
 
 # Run the jupyterlab within Docker
-lab-docker: install
-    cd notebooks && poetry run jupyter notebook --allow-root --ip=0.0.0.0 {{silent}} &
+lab-docker: (lab "--allow-root" "--ip=0.0.0.0")
 
 [script]
 kill-lab port="":
