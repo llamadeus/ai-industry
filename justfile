@@ -1,6 +1,8 @@
 set unstable # required for `[script]` tag instead of using shebang
 
 silent := '>/dev/null 2>&1'
+current-notebook-json-cmd := "poetry run jupyter notebook list --json \
+    | jq -s '[.[] | select (.root_dir | contains(\"" + justfile_directory() + "\"))] | first'"
 
 # Install project dependencies using Poetry
 install:
@@ -13,8 +15,8 @@ setup: install
 # Run the jupyterlab dev environment
 lab *options:
     # Only start new instance if none is running
-    test -z "$(poetry run jupyter notebook list --json)" \
-        && poetry run jupyter notebook --notebook-dir=notebooks {{options}} {{silent}} &
+    test ! "$({{current-notebook-json-cmd}})" = "null" \
+        || poetry run jupyter notebook --notebook-dir=notebooks {{options}} {{silent}} &
 
 # Run the jupyterlab within Docker
 lab-docker: (lab "--allow-root" "--ip=0.0.0.0")
@@ -27,11 +29,11 @@ kill-lab port="":
 
 # Choose a file to open in the running lab instance
 [script("bash")]
-choose-notebook browser="open": lab
+choose-notebook browser="open": (lab "--no-browser")
     choice=$(find notebooks/ -type f -name "*.ipynb" -not -path "*/.*/*" | fzf --sort) # List notebooks ignoring hidden folders
-    eval $(poetry run jupyter notebook list --json | jq -r '"token=\(.token) url=\(.url)"') # Get token and url of server
+    eval $({{current-notebook-json-cmd}} | jq -r '"token=\(.token) url=\(.url)"')
     http_encoded_choice=${choice// /%20}
-    {{browser}} "${url}${http_encoded_choice}?token=${token}"
+    {{browser}} "${url}${http_encoded_choice}?token=${token}" {{silent}} &
 
 test: 
     poetry run pytest 'notebooks/util/util.py'
