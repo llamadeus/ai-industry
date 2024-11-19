@@ -17,6 +17,9 @@ lab *options:
     # Only start new instance if none is running
     test ! "$({{current-notebook-json-cmd}})" = "null" \
         || poetry run jupyter notebook --notebook-dir=notebooks {{options}} {{silent}} &
+    while [ "$({{current-notebook-json-cmd}})" = "null" ]; do \
+        sleep 1; \
+    done
 
 # Run the jupyterlab within Docker
 lab-docker: (lab "--allow-root" "--ip=0.0.0.0")
