@@ -24,11 +24,8 @@ lab *options:
 # Run the jupyterlab within Docker
 lab-docker: (lab "--allow-root" "--ip=0.0.0.0")
 
-[script]
-kill-lab port="":
-    if ! poetry run jupyter notebook stop {{port}}; then
-        echo 'Please provide the port of the server you want to kill as parameter'
-    fi
+kill-lab:
+    poetry run jupyter notebook stop $({{current-notebook-json-cmd}} | jq -r ".port")
 
 # Choose a file to open in the running lab instance
 [script("bash")]
