@@ -14,6 +14,9 @@ seaborn = "^0.13.2"
 notebook = "^7.2.2"
 pytest = "^8.3.3"
 nbdime = "^4.0.2"
+scikit-learn = "^1.5.2"
+jedi = "^0.19.2"
+ipython = "^8.29.0"
 
 
 [build-system]
