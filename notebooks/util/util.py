@@ -117,3 +117,7 @@ def plot_series(data, labels=None,
     plt.ylabel(ylabel)
     plt.grid(':')
     plt.tight_layout()
+
+
+def bold(text):
+    return f"\033[1m{text}\033[0m"
