@@ -3,6 +3,8 @@ import pandas as pd
 from fontTools.designspaceLib.types import locationInRegion
 from matplotlib import pyplot as plt
 
+from collections import Counter
+
 # Configuration
 anomaly_color = 'sandybrown'
 prediction_color = 'yellowgreen'
@@ -27,16 +29,63 @@ def find_best_segment_in_series(series, max_missing):
     # Extending any segment up to the the next missing value adds exactly one missing value.
     # Therefore, for any index `i`, any segment `series[M[i]:M[i+max_missing]] contains `max_missing` missing values.
     # As such, we look for the longest such segment.
-    indices_of_missing_values = np.array([-1, *np.where(series.isna())[0], len(series)])
+    indices_of_missing_values = np.array(
+        [-1, *np.where(series.isna())[0], len(series)])
     # The number must not be larger than the total number of Nas
     max_missing = min(max_missing, len(indices_of_missing_values) - 2)
-    segment_lengths_plus_1 = indices_of_missing_values[max_missing+1:] - indices_of_missing_values[:-max_missing-1]
+    segment_lengths_plus_1 = indices_of_missing_values[max_missing +
+                                                       1:] - indices_of_missing_values[:-max_missing-1]
     location_where_we_find_the_index_where_the_segment_starts = segment_lengths_plus_1.argmax()
     return [1, -1] + indices_of_missing_values[np.array([0, max_missing+1]) + location_where_we_find_the_index_where_the_segment_starts]
 
 
+def count_na_segment_lengths(series):
+    """
+    Count continuous segments of True values for all lengths in a boolean array.
+
+    Parameters:
+        series (pd.Series): A 1D boolean array.
+
+    Returns:
+        dict: A dictionary where keys are segment lengths and values are counts.
+    """
+    # Find the indices where segments of True start and end
+    padded_array = np.pad(series.isna(), (1, 1), constant_values=False)
+    diff = np.diff(padded_array.astype(int))
+    starts = np.where(diff == 1)[0]
+    ends = np.where(diff == -1)[0]
+
+    # Calculate lengths of segments
+    lengths = (ends - starts)
+
+    # Count occurrences of each length
+    return dict(Counter(int(x) for x in lengths))
+
+
+def test_count_non_nan_segments():
+    # Define test cases as a list of (input, expected_output) tuples
+    test_cases = [
+        (pd.Series([1, None, None, None, 2]), {3: 1}),  # Single segment
+        (pd.Series([1, None, None, 2, None, None, None, 3, None]),
+         {2: 1, 3: 1, 1: 1}),  # Multiple segments
+        (pd.Series([1, 2, 3]), {}),  # No non-NaN values
+        (pd.Series([None, None, None, None]), {4: 1}),  # All non-NaN values
+        (pd.Series([None, 1, None, 2, None]), {1: 3}),  # Alternating values
+        (pd.Series([]), {}),  # Empty array
+        (pd.Series([None, None, 1, None, 2, 3, None, None, None]),
+         {2: 1, 1: 1, 3: 1}),  # Mixed edge case
+    ]
+
+    # Iterate through test cases
+    for i, (array, expected) in enumerate(test_cases):
+        result = count_na_segment_lengths(array)  # Treat non-NaN values as True
+        assert result == expected, f"Test case {
+            i + 1} failed: Expected {expected}, got {result}"
+
+
 def test_find_best_segment_in_series():
-    data = pd.Series([1, None, 2, 3, 4, None, None, 5, 6, 7, 8, None, 9, 10, None, 11, 12])
+    data = pd.Series([1, None, 2, 3, 4, None, None, 5,
+                     6, 7, 8, None, 9, 10, None, 11, 12])
 
     start, end = find_best_segment_in_series(data, 1)
     print(f"Best segment: {start} to {end}")
