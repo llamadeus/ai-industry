@@ -3,8 +3,6 @@ import pandas as pd
 from fontTools.designspaceLib.types import locationInRegion
 from matplotlib import pyplot as plt
 
-from collections import Counter
-
 # Configuration
 anomaly_color = 'sandybrown'
 prediction_color = 'yellowgreen'
@@ -30,7 +28,7 @@ def find_best_segment_in_series(series, max_missing):
     # Therefore, for any index `i`, any segment `series[M[i]:M[i+max_missing]] contains `max_missing` missing values.
     # As such, we look for the longest such segment.
     indices_of_missing_values = np.array(
-        [-1, *np.where(series.isna())[0], len(series)])
+        [-1, *np.asarray(series.isna()).nonzero()[0], len(series)])
     # The number must not be larger than the total number of Nas
     max_missing = min(max_missing, len(indices_of_missing_values) - 2)
     segment_lengths_plus_1 = indices_of_missing_values[max_missing +
@@ -39,7 +37,18 @@ def find_best_segment_in_series(series, max_missing):
     return [1, -1] + indices_of_missing_values[np.array([0, max_missing+1]) + location_where_we_find_the_index_where_the_segment_starts]
 
 
-def count_na_segment_lengths(series):
+def calculate_true_series(series):
+    # Find the indices where segments of True start and end
+    padded_array = np.pad(series, (1, 1), constant_values=False)
+    diff = np.diff(padded_array.astype(int))
+    starts = (diff == 1).nonzero()[0]
+    ends = (diff == -1).nonzero()[0]
+
+    # Calculate lengths of segments
+    return np.column_stack((starts, ends - starts))
+
+
+def calculate_na_series(series):
     """
     Count continuous segments of True values for all lengths in a boolean array.
 
@@ -49,37 +58,37 @@ def count_na_segment_lengths(series):
     Returns:
         dict: A dictionary where keys are segment lengths and values are counts.
     """
-    # Find the indices where segments of True start and end
-    padded_array = np.pad(series.isna(), (1, 1), constant_values=False)
-    diff = np.diff(padded_array.astype(int))
-    starts = np.where(diff == 1)[0]
-    ends = np.where(diff == -1)[0]
-
-    # Calculate lengths of segments
-    lengths = (ends - starts)
-
-    # Count occurrences of each length
-    return dict(Counter(int(x) for x in lengths))
+    return calculate_true_series(series.isna())
 
 
 def test_count_non_nan_segments():
     # Define test cases as a list of (input, expected_output) tuples
     test_cases = [
-        (pd.Series([1, None, None, None, 2]), {3: 1}),  # Single segment
+        # Format: (Input Series, Expected Output (zipped starts and lengths))
+        # Case 1: Single segment of NAs
+        (pd.Series([1, None, None, None, 2]), np.array([(1, 3)])),
+        # Case 2: Multiple segments of NAs
         (pd.Series([1, None, None, 2, None, None, None, 3, None]),
-         {2: 1, 3: 1, 1: 1}),  # Multiple segments
-        (pd.Series([1, 2, 3]), {}),  # No non-NaN values
-        (pd.Series([None, None, None, None]), {4: 1}),  # All non-NaN values
-        (pd.Series([None, 1, None, 2, None]), {1: 3}),  # Alternating values
-        (pd.Series([]), {}),  # Empty array
+         np.array([(1, 2), (4, 3), (8, 1)])),
+        # Case 3: No NAs
+        (pd.Series([1, 2, 3]), np.array([])),
+        # Case 4: Entire Series is NAs
+        (pd.Series([None, None, None, None]), np.array([(0, 4)])),
+        # Case 5: Alternating values
+        (pd.Series([None, 1, None, 2, None]),
+         np.array([(0, 1), (2, 1), (4, 1)])),
+        # Case 6: Empty array
+        (pd.Series([]), np.array([])),
+        # Case 7: Mixed edge case
         (pd.Series([None, None, 1, None, 2, 3, None, None, None]),
-         {2: 1, 1: 1, 3: 1}),  # Mixed edge case
+         np.array([(0, 2), (3, 1), (6, 3)])),
     ]
 
     # Iterate through test cases
     for i, (array, expected) in enumerate(test_cases):
-        result = count_na_segment_lengths(array)  # Treat non-NaN values as True
-        assert result == expected, f"Test case {
+        result = calculate_na_series(array)  # Treat non-NaN values as True
+        # I don't want to fiddle with the types so just convert them as strings
+        assert str(result) == str(expected), f"Test case {
             i + 1} failed: Expected {expected}, got {result}"
 
 
