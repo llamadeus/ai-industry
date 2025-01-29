@@ -109,19 +109,31 @@ def test_find_best_segment_in_series():
     assert (start, end) == (0, 3)
 
 
-def plot_autocorrelation(data, max_lag=100, figsize=figsize):
+def plot_multiple_autocorrelations(columns, max_lag=100, figsize=(10, 6)):
+    """
+    Plots multiple autocorrelation plots in a single figure.
+
+    Parameters:
+        columns (list of pd.Series): A list of pandas Series to plot autocorrelation for.
+        max_lag (int): Maximum lag to plot (customize x-axis limits).
+        figsize (tuple): Figure size.
+    """
     # Open a new figure
     plt.close('all')
     plt.figure(figsize=figsize)
-    # Autocorrelation plot
-    pd.plotting.autocorrelation_plot(data['value'])
-    # Customized x limits
-    plt.xlim(0, max_lag)
-    # Rotated x ticks
+
+    # Iterate over columns
+    for column in columns:
+        # Autocorrelation plot for each column
+        pd.plotting.autocorrelation_plot(column, label=column.name)
+
+    # Customized x limits and appearance
+    # plt.xlim(left=0, right=max_lag)
     plt.xticks(rotation=45)
     plt.grid(':')
+    plt.legend()  # Add a legend to distinguish between columns
     plt.tight_layout()
-
+    plt.show()
 
 def plot_series(data, labels=None,
                 windows=None,
