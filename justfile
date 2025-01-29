@@ -16,7 +16,7 @@ setup: install
 lab *options:
     # Only start new instance if none is running
     test ! "$({{current-notebook-json-cmd}})" = "null" \
-        || poetry run jupyter notebook --notebook-dir=notebooks {{options}} {{silent}} &
+        || poetry run jupyter notebook --notebook-dir=notebooks {{options}} &
     while [ "$({{current-notebook-json-cmd}})" = "null" ]; do \
         sleep 1; \
     done
