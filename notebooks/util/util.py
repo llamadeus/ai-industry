@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from fontTools.designspaceLib.types import locationInRegion
 from matplotlib import pyplot as plt
+from matplotlib.ticker import FuncFormatter
+import logging
 
 # Configuration
 anomaly_color = 'sandybrown'
@@ -109,7 +111,7 @@ def test_find_best_segment_in_series():
     assert (start, end) == (0, 3)
 
 
-def plot_multiple_autocorrelations(columns, max_lag=100, figsize=(10, 6)):
+def plot_multiple_autocorrelations(columns, figsize=(10, 6)):
     """
     Plots multiple autocorrelation plots in a single figure.
 
@@ -118,6 +120,9 @@ def plot_multiple_autocorrelations(columns, max_lag=100, figsize=(10, 6)):
         max_lag (int): Maximum lag to plot (customize x-axis limits).
         figsize (tuple): Figure size.
     """
+    delta=columns[0].index[1]-columns[0].index[0]
+    logging.debug(f"Delta: {delta} (type: {type(delta)})")
+
     # Open a new figure
     plt.close('all')
     plt.figure(figsize=figsize)
@@ -127,6 +132,11 @@ def plot_multiple_autocorrelations(columns, max_lag=100, figsize=(10, 6)):
         # Autocorrelation plot for each column
         pd.plotting.autocorrelation_plot(column, label=column.name)
 
+    # Add custom formatter for x-axis so that each lag unit equals 5 minutes.
+    formatter = FuncFormatter(lambda x, pos: (columns[0].index[0] + x * delta).strftime('%m-%d %H:%M'))
+    plt.gca().xaxis.set_major_formatter(formatter)
+    from matplotlib.ticker import MaxNLocator
+    plt.gca().xaxis.set_major_locator(MaxNLocator(nbins=20))
     # Customized x limits and appearance
     # plt.xlim(left=0, right=max_lag)
     plt.xticks(rotation=45)
