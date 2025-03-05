@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import pandas.testing as pdt
 from fontTools.designspaceLib.types import locationInRegion
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FuncFormatter
@@ -200,6 +201,42 @@ def plot_series(data, labels=None,
     plt.ylabel(ylabel)
     plt.grid(':')
     plt.tight_layout()
+
+
+def sliding_window(data, wlen):
+    # If data is a Series, convert to DataFrame for uniformity.
+    if isinstance(data, pd.Series):
+        data = data.to_frame()
+    
+    m = data.shape[0]
+    # Collect slices corresponding to each offset in the window.
+    windows = [data.iloc[i : m - wlen + i + 1].values for i in range(wlen)]
+    
+    # Horizontally stack to flatten the window slices.
+    wdata = np.hstack(windows)
+    
+    # The new index corresponds to the end of each window.
+    new_index = data.index[wlen - 1:]
+    # New columns: flattened dimensions (wlen * original number of columns).
+    num_features = data.shape[1]
+    new_columns = range(wlen * num_features)
+    
+    return pd.DataFrame(wdata, index=new_index, columns=new_columns)
+
+
+def test_sliding_window():
+    df = pd.DataFrame({
+        "Column1": [1, 2, 3, 4],
+        "Column2": [-1, -2, -3, -4]
+    })
+    winds = sliding_window(df, 2)
+    expected_df = pd.DataFrame({
+        0: [1, 2, 3],
+        1: [-1, -2, -3],
+        2: [2, 3, 4],
+        3: [-2, -3, -4]
+    }, index=[1, 2, 3])
+    pdt.assert_frame_equal(winds, expected_df)
 
 
 def bold(text):
