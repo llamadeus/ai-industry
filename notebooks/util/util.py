@@ -6,12 +6,33 @@ from matplotlib.ticker import FuncFormatter
 import logging
 
 # Configuration
+data_folder = '../resources/dataset'
 anomaly_color = 'sandybrown'
 prediction_color = 'yellowgreen'
 training_color = 'yellowgreen'
 validation_color = 'gold'
 test_color = 'coral'
 figsize = (9, 3)
+
+
+def load_dataset(filename):
+    """
+    Load the dataset from a CSV file.
+
+    Parameters:
+        filename (str): The name of the CSV file.
+
+    Returns:
+        pd.DataFrame: The loaded dataset.
+    """
+
+    # Load the input data
+    data_path = f'{data_folder}/{filename}'
+    raw_data = pd.read_csv(data_path)
+    raw_data['Time'] = pd.to_datetime(raw_data['Time'])
+    raw_data.set_index('Time', inplace=True)
+
+    return raw_data.drop(columns=["Unnamed: 0"])  # The index was stored as an unnamed column
 
 
 def find_best_segment_in_series(series, max_missing):
