@@ -16,6 +16,8 @@ validation_color = 'gold'
 test_color = 'coral'
 figsize = (9, 3)
 best_imputation_method = 'linear'
+best_window_length = 10
+best_aggregation_length = 50
 
 
 def load_dataset(filename):
@@ -278,6 +280,43 @@ def test_sliding_window():
         3: [-2, -3, -4]
     }, index=[1, 2, 3])
     pdt.assert_frame_equal(winds, expected_df)
+
+
+def apply_sliding_window_and_aggregate(df: pd.DataFrame, window_length: int = best_window_length, aggregation_length: int = best_aggregation_length):
+    """
+    Apply a sliding window and aggregate the data.
+
+    Parameters:
+        df (pd.DataFrame): The input DataFrame.
+        window_length (int, optional): The length of the sliding window. Default is the best window length.
+        aggregation_length (int, optional): The length of the aggregation window. Default is the best aggregation length.
+
+    Returns:
+        pd.DataFrame: The aggregated DataFrame.
+    """
+    # Apply a sliding window
+    windows = sliding_window(df, window_length)
+
+    # Aggregate the windows
+    aggregates = df.rolling(window=aggregation_length, min_periods=1).agg(['mean', 'var'])
+
+    # Flatten the multi-level columns
+    aggregates.columns = [f'{col}_{func}' for col, func in aggregates.columns]
+
+    # Aggregate the 'Event' column: if any event occurs in the window, mark the window as anomalous.
+    agg_event = df['Event'].rolling(window=window_length, min_periods=1).max()
+
+    # Align the aggregated event labels with the aggregated features.
+    df_agg = pd.concat([windows, aggregates.iloc[window_length-1:]], axis=1)
+    df_agg.columns = [f'{col[0]}_{col[1]}' if isinstance(col, tuple) else f'window_{col}' for col in df_agg.columns]
+
+    # Drop the rows with missing values (this is just the first row, as it doesn't contain a value for the variance)
+    df_agg = df_agg.dropna()
+
+    # Add the event column
+    df_agg['Event'] = agg_event
+
+    return df_agg
 
 
 def bold(text):
