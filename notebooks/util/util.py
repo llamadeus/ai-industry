@@ -6,6 +6,7 @@ import pandas.testing as pdt
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from pandas._typing import InterpolateOptions
+from sklearn.metrics import precision_score, recall_score, f1_score
 
 # Configuration
 data_folder = '../resources/dataset'
@@ -350,6 +351,26 @@ def get_predictions_from_log_likelihood(log_likelihood, percentile):
     y_pred = log_likelihood < threshold
 
     return y_pred
+
+
+def compute_model_performance(y_pred, y_true):
+    """
+    Compute the performance of a model.
+
+    Parameters:
+        y_pred (np.ndarray): The predictions of the model.
+        y_true (np.ndarray): The true labels of the model.
+
+    Returns:
+        Tuple[float, float, float]: A tuple containing the F1 score, precision, and recall of the model.
+    """
+
+    # Evaluate against true labels.
+    f1 = f1_score(y_true, y_pred)
+    precision = precision_score(y_true, y_pred)
+    recall = recall_score(y_true, y_pred)
+
+    return f1, precision, recall
 
 
 def bold(text):
