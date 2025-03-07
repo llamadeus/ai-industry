@@ -1,10 +1,10 @@
-import numpy as np
-import pandas as pd
-from fontTools.designspaceLib.types import locationInRegion
-from matplotlib import pyplot as plt
-from matplotlib.ticker import FuncFormatter
 import logging
 
+import numpy as np
+import pandas as pd
+import pandas.testing as pdt
+from matplotlib import pyplot as plt
+from matplotlib.ticker import FuncFormatter
 from pandas._typing import InterpolateOptions
 
 # Configuration
@@ -134,40 +134,43 @@ def test_find_best_segment_in_series():
     print(f"Best segment: {start} to {end}")
     assert (start, end) == (0, 3)
 
-
-def plot_multiple_autocorrelations(columns, figsize=(10, 6)):
+def plot_multiple_autocorrelations(columns, max_lag=None, figsize=(10, 6)):
     """
     Plots multiple autocorrelation plots in a single figure.
 
     Parameters:
         columns (list of pd.Series): A list of pandas Series to plot autocorrelation for.
-        max_lag (int): Maximum lag to plot (customize x-axis limits).
+        max_lag (int, optional): Maximum lag to plot (customizes x-axis limits). If None, no limit is applied.
         figsize (tuple): Figure size.
     """
-    delta=columns[0].index[1]-columns[0].index[0]
+    # Calculate time delta between consecutive index entries
+    delta = columns[0].index[1] - columns[0].index[0]
     logging.debug(f"Delta: {delta} (type: {type(delta)})")
 
-    # Open a new figure
+    # Open a new figure and clear existing ones
     plt.close('all')
     plt.figure(figsize=figsize)
 
-    # Iterate over columns
+    # Plot autocorrelation for each column
     for column in columns:
-        # Autocorrelation plot for each column
         pd.plotting.autocorrelation_plot(column, label=column.name)
 
-    # Add custom formatter for x-axis so that each lag unit equals 5 minutes.
+    # Define a formatter for the x-axis based on the starting time and delta
     formatter = FuncFormatter(lambda x, pos: (columns[0].index[0] + x * delta).strftime('%m-%d %H:%M'))
     plt.gca().xaxis.set_major_formatter(formatter)
     from matplotlib.ticker import MaxNLocator
     plt.gca().xaxis.set_major_locator(MaxNLocator(nbins=20))
-    # Customized x limits and appearance
-    # plt.xlim(left=0, right=max_lag)
+    
+    # If max_lag is provided, set the x-axis limits accordingly
+    if max_lag is not None:
+        plt.xlim(0, max_lag)
+
     plt.xticks(rotation=45)
     plt.grid(':')
     plt.legend()  # Add a legend to distinguish between columns
     plt.tight_layout()
     plt.show()
+
 
 def plot_series(data, labels=None,
                 windows=None,
@@ -239,6 +242,42 @@ def impute_missing_values(df: pd.DataFrame, method: InterpolateOptions = best_im
         raise ValueError(f"Invalid imputation method: {method}")
 
     return df.interpolate(method='linear', axis=0)
+
+
+def sliding_window(data, wlen):
+    # If data is a Series, convert to DataFrame for uniformity.
+    if isinstance(data, pd.Series):
+        data = data.to_frame()
+    
+    m = data.shape[0]
+    # Collect slices corresponding to each offset in the window.
+    windows = [data.iloc[i : m - wlen + i + 1].values for i in range(wlen)]
+    
+    # Horizontally stack to flatten the window slices.
+    wdata = np.hstack(windows)
+    
+    # The new index corresponds to the end of each window.
+    new_index = data.index[wlen - 1:]
+    # New columns: flattened dimensions (wlen * original number of columns).
+    num_features = data.shape[1]
+    new_columns = range(wlen * num_features)
+    
+    return pd.DataFrame(wdata, index=new_index, columns=new_columns)
+
+
+def test_sliding_window():
+    df = pd.DataFrame({
+        "Column1": [1, 2, 3, 4],
+        "Column2": [-1, -2, -3, -4]
+    })
+    winds = sliding_window(df, 2)
+    expected_df = pd.DataFrame({
+        0: [1, 2, 3],
+        1: [-1, -2, -3],
+        2: [2, 3, 4],
+        3: [-2, -3, -4]
+    }, index=[1, 2, 3])
+    pdt.assert_frame_equal(winds, expected_df)
 
 
 def bold(text):
