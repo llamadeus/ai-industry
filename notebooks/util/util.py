@@ -342,7 +342,7 @@ def get_predictions_from_log_likelihood(log_likelihood, percentile):
         percentile (float): The percentile to compute the performance for.
 
     Returns:
-        float: The performance of the model.
+        Tuple[np.ndarray, float]: A tuple containing the predictions and the threshold.
     """
     # Compute threshold for this percentile.
     threshold = np.percentile(log_likelihood, percentile)
@@ -350,7 +350,7 @@ def get_predictions_from_log_likelihood(log_likelihood, percentile):
     # Get anomaly predictions based on this threshold.
     y_pred = log_likelihood < threshold
 
-    return y_pred
+    return y_pred, threshold
 
 
 def compute_model_performance(y_pred, y_true):
