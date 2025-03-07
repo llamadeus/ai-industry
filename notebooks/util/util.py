@@ -332,5 +332,25 @@ def get_feature_columns(df: pd.DataFrame):
     return [col for col in df.columns if col != 'Event']
 
 
+def get_predictions_from_log_likelihood(log_likelihood, percentile):
+    """
+    Get the predictions from a log likelihood.
+
+    Parameters:
+        log_likelihood (float): The log likelihood of the model.
+        percentile (float): The percentile to compute the performance for.
+
+    Returns:
+        float: The performance of the model.
+    """
+    # Compute threshold for this percentile.
+    threshold = np.percentile(log_likelihood, percentile)
+
+    # Get anomaly predictions based on this threshold.
+    y_pred = log_likelihood < threshold
+
+    return y_pred
+
+
 def bold(text):
     return f"\033[1m{text}\033[0m"
