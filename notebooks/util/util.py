@@ -5,6 +5,8 @@ from matplotlib import pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import logging
 
+from pandas._typing import InterpolateOptions
+
 # Configuration
 data_folder = '../resources/dataset'
 anomaly_color = 'sandybrown'
@@ -13,6 +15,7 @@ training_color = 'yellowgreen'
 validation_color = 'gold'
 test_color = 'coral'
 figsize = (9, 3)
+best_imputation_method = 'linear'
 
 
 def load_dataset(filename):
@@ -218,6 +221,24 @@ def plot_series(data, labels=None,
     plt.ylabel(ylabel)
     plt.grid(':')
     plt.tight_layout()
+
+
+def impute_missing_values(df: pd.DataFrame, method: InterpolateOptions = best_imputation_method):
+    """
+    Impute missing values in a pandas DataFrame using the specified method.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame to impute.
+        method (InterpolateOptions): The imputation method to use. Default is 'linear'.
+
+    Returns:
+        pd.DataFrame: The imputed DataFrame.
+    """
+    # Check if the method is valid
+    if method not in ['linear', 'polynomial', 'spline', 'nearest']:
+        raise ValueError(f"Invalid imputation method: {method}")
+
+    return df.interpolate(method='linear', axis=0)
 
 
 def bold(text):
