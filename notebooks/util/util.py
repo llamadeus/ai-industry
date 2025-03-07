@@ -19,6 +19,7 @@ figsize = (9, 3)
 best_imputation_method = 'linear'
 best_window_length = 10
 best_aggregation_length = 50
+best_detrending_window_length = 2 * 60  # 2 hours
 
 
 def load_dataset(filename):
@@ -378,6 +379,28 @@ def compute_model_performance(y_pred, y_true):
     recall = recall_score(y_true, y_pred)
 
     return f1, precision, recall
+
+
+def apply_detrending(df: pd.DataFrame, window_size: int = best_detrending_window_length):
+    """
+    Apply a moving average detrending to the DataFrame.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame to detrend.
+        window_size (int, optional): The size of the moving window. Default is 2 hours.
+
+    Returns:
+        pd.DataFrame: The detrended DataFrame.
+    """
+    # Get the feature columns
+    feature_columns = get_feature_columns(df)
+
+    # Subtract the moving average from each column
+    detrended_df = df[feature_columns] - df[feature_columns].rolling(window=window_size, min_periods=1, center=True).mean()
+    # Drop NaNs resulting from rolling operations.
+    detrended_df = detrended_df.dropna()
+
+    return detrended_df
 
 
 def bold(text):
