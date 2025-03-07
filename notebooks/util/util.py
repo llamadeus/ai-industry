@@ -137,7 +137,7 @@ def test_find_best_segment_in_series():
     print(f"Best segment: {start} to {end}")
     assert (start, end) == (0, 3)
 
-def plot_multiple_autocorrelations(columns, max_lag=None, figsize=(10, 6)):
+def plot_multiple_autocorrelations(columns, max_lag=None, figsize=(10, 6), ylim=None):
     """
     Plots multiple autocorrelation plots in a single figure.
 
@@ -145,6 +145,7 @@ def plot_multiple_autocorrelations(columns, max_lag=None, figsize=(10, 6)):
         columns (list of pd.Series): A list of pandas Series to plot autocorrelation for.
         max_lag (int, optional): Maximum lag to plot (customizes x-axis limits). If None, no limit is applied.
         figsize (tuple): Figure size.
+        ylim (tuple): Y-axis limits.
     """
     # Calculate time delta between consecutive index entries
     delta = columns[0].index[1] - columns[0].index[0]
@@ -167,6 +168,9 @@ def plot_multiple_autocorrelations(columns, max_lag=None, figsize=(10, 6)):
     # If max_lag is provided, set the x-axis limits accordingly
     if max_lag is not None:
         plt.xlim(0, max_lag)
+
+    if ylim is not None:
+        plt.ylim(*ylim)
 
     plt.xticks(rotation=45)
     plt.grid(':')
