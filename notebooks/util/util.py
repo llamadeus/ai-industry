@@ -295,11 +295,14 @@ def apply_sliding_window_and_aggregate(df: pd.DataFrame, window_length: int = be
     Returns:
         pd.DataFrame: The aggregated DataFrame.
     """
+    # Get the feature columns
+    features = get_feature_columns(df)
+
     # Apply a sliding window
-    windows = sliding_window(df, window_length)
+    windows = sliding_window(df[features], window_length)
 
     # Aggregate the windows
-    aggregates = df.rolling(window=aggregation_length, min_periods=1).agg(['mean', 'var'])
+    aggregates = df[features].rolling(window=aggregation_length, min_periods=1).agg(['mean', 'var'])
 
     # Flatten the multi-level columns
     aggregates.columns = [f'{col}_{func}' for col, func in aggregates.columns]
