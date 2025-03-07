@@ -319,5 +319,18 @@ def apply_sliding_window_and_aggregate(df: pd.DataFrame, window_length: int = be
     return df_agg
 
 
+def get_feature_columns(df: pd.DataFrame):
+    """
+    Get the feature columns from a DataFrame.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame to get the feature columns from.
+
+    Returns:
+        list[str]: The list of feature columns.
+    """
+    return [col for col in df.columns if col != 'Event']
+
+
 def bold(text):
     return f"\033[1m{text}\033[0m"
