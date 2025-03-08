@@ -426,7 +426,7 @@ def build_nn_model(input_shape, output_shape, hidden, with_dropout=True, output_
     for h in hidden:
         x = tf.keras.layers.Dense(h, activation='relu')(x)
         if with_dropout:
-            x = tf.keras.layers.Dropout(0.3)(x)
+            x = tf.keras.layers.Dropout(0.2)(x)
 
     model_out = tf.keras.layers.Dense(output_shape, activation=output_activation)(x)
     model = tf.keras.Model(model_in, model_out)
