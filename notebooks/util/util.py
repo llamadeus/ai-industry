@@ -44,6 +44,37 @@ def load_dataset(filename):
     return raw_data.drop(columns=["Unnamed: 0"])  # The index was stored as an unnamed column
 
 
+def load_dataset_xy(filename, preprocess=None):
+    """
+    Load the dataset from a CSV file.
+
+    Parameters:
+        filename (str): The name of the CSV file.
+        preprocess (list): A list of preprocessing functions to apply to the dataset.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.Series]: The loaded dataset split into features and labels.
+    """
+    if preprocess is None:
+        preprocess = [impute_missing_values, apply_detrending]
+
+    # Load the input data
+    raw_data = load_dataset(filename)
+
+    # Apply preprocessing functions
+    for func in preprocess:
+        raw_data = func(raw_data)
+
+    # Get feature columns
+    feature_columns = get_feature_columns(raw_data)
+
+    # Split data into features and labels
+    X = raw_data[feature_columns]
+    y = raw_data['Event']
+
+    return X, y
+
+
 def find_best_segment_in_series(series, max_missing):
     """
     Find the longest segment in a Series with at most `max_missing` missing values.
