@@ -1,8 +1,10 @@
+import copy
 import logging
 
 import numpy as np
 import pandas as pd
 import pandas.testing as pdt
+import tensorflow as tf
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from pandas._typing import InterpolateOptions
@@ -402,6 +404,117 @@ def apply_detrending(df: pd.DataFrame, window_size: int = best_detrending_window
     detrended_df = detrended_df.dropna()
 
     return detrended_df
+
+
+def build_nn_model(input_shape, output_shape, hidden, with_dropout=True, output_activation='linear'):
+    """
+    Build a neural network model with the specified architecture. It includes a dense layer for each hidden layer size, and an optional dropout layer.
+
+    Parameters:
+        input_shape (int|tuple[int]): The number of input features.
+        output_shape (int): The number of output features.
+        hidden (list): A list of hidden layer sizes.
+        with_dropout (bool): Whether to include dropout layers in the model.
+        output_activation (str): The activation function for the output layer.
+
+    Returns:
+    tf.keras.Model: The built neural network model.
+    """
+    model_in = tf.keras.Input(shape=input_shape, dtype='float32')
+    x = model_in
+
+    for h in hidden:
+        x = tf.keras.layers.Dense(h, activation='relu')(x)
+        if with_dropout:
+            x = tf.keras.layers.Dropout(0.3)(x)
+
+    model_out = tf.keras.layers.Dense(output_shape, activation=output_activation)(x)
+    model = tf.keras.Model(model_in, model_out)
+
+    return model
+
+
+def train_nn_model(model, X, y, loss, verbose=0, patience=10, validation_split=0.0, validation_data=None, metrics=None, **fit_params):
+    """
+    Train a neural network model using the specified loss function and hyperparameters.
+
+    Parameters:
+        model (tf.keras.Model): The neural network model to train.
+        X (np.ndarray): The input data.
+        y (np.ndarray): The target data.
+        loss (str): The loss function to use.
+        verbose (int): The verbosity level.
+        patience (int): The number of epochs to wait before early stopping.
+        validation_split (float): The proportion of the data to use for validation.
+        validation_data (tuple): The validation data to use.
+        metrics (list): A list of metrics to track during training.
+        **fit_params: Additional keyword arguments to pass to the model.fit() method.
+
+    Returns:
+        keras.callbacks.History: The history object from the model.fit() method.
+    """
+    # Compile the model
+    model.compile(optimizer='Adam', loss=loss, metrics=metrics)
+
+    # Build the early stop callback
+    cb = []
+
+    if validation_split > 0:
+        cb += [tf.keras.callbacks.EarlyStopping(patience=patience, restore_best_weights=True)]
+
+    # Train the model
+    history = model.fit(X, y, callbacks=cb, validation_split=validation_split, validation_data=validation_data, verbose=verbose, **fit_params)
+
+    return history
+
+
+def plot_training_history(history=None, figsize=None, print_final_scores=True):
+    """
+    Plot the training history of a Keras model.
+
+    Parameters:
+        history (keras.callbacks.History): The history object from the model.fit() method.
+        figsize (Tuple[float, float]): The size of the figure to plot.
+        print_final_scores (bool): Whether to print the final scores.
+    """
+    plt.figure(figsize=figsize)
+    for metric in history.history.keys():
+        plt.plot(history.history[metric], label=metric)
+
+    if len(history.history.keys()) > 0:
+        plt.legend()
+
+    plt.xlabel('epochs')
+    plt.grid(linestyle=':')
+    plt.tight_layout()
+    plt.show()
+    if print_final_scores:
+        s = []
+        for metric in history.history.keys():
+            value = history.history[metric][-1]
+            s.append(f'{metric}: {value:.4f}')
+
+        print(f'Final scores: {", ".join(s)}')
+
+
+def pick_history_keys(history, keys_to_keep):
+    """
+    Returns a copy of the Keras History object that only contains the specified keys.
+
+    Parameters:
+        history (keras.callbacks.History): The original Keras History object from model.fit.
+        keys_to_keep (list): A list of metric names (keys) to keep in the history.
+
+    Returns:
+        keras.callbacks.History: A new History object with a filtered history dictionary.
+    """
+    # Create a deep copy of the original history to avoid modifying it
+    new_history = copy.deepcopy(history)
+
+    # Filter the history dictionary to keep only the desired keys
+    new_history.history = {key: value for key, value in new_history.history.items() if key in keys_to_keep}
+
+    return new_history
 
 
 def bold(text):
