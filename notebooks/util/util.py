@@ -435,7 +435,7 @@ def build_nn_model(input_shape, output_shape, hidden, with_dropout=True, output_
     return model
 
 
-def train_nn_model(model, X, y, loss, verbose=0, patience=10, validation_split=0.0, validation_data=None, metrics=None, **fit_params):
+def train_nn_model(model, X, y, loss, learning_rate=1e-4, verbose=0, patience=10, validation_split=0.0, validation_data=None, metrics=None, **fit_params):
     """
     Train a neural network model using the specified loss function and hyperparameters.
 
@@ -444,6 +444,7 @@ def train_nn_model(model, X, y, loss, verbose=0, patience=10, validation_split=0
         X (np.ndarray): The input data.
         y (np.ndarray): The target data.
         loss (str): The loss function to use.
+        learning_rate (float): The learning rate to use.
         verbose (int): The verbosity level.
         patience (int): The number of epochs to wait before early stopping.
         validation_split (float): The proportion of the data to use for validation.
@@ -455,7 +456,7 @@ def train_nn_model(model, X, y, loss, verbose=0, patience=10, validation_split=0
         keras.callbacks.History: The history object from the model.fit() method.
     """
     # Compile the model
-    model.compile(optimizer='Adam', loss=loss, metrics=metrics)
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), loss=loss, metrics=metrics)
 
     # Build the early stop callback
     cb = []
