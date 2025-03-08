@@ -399,7 +399,8 @@ def apply_detrending(df: pd.DataFrame, window_size: int = best_detrending_window
 
     # Subtract the moving average from each column
     detrended_df = df[feature_columns] - df[feature_columns].rolling(window=window_size, min_periods=1, center=True).mean()
-    detrended_df['Event'] = df['Event']
+    if 'Event' in df.columns:
+        detrended_df['Event'] = df['Event']
     # Drop NaNs resulting from rolling operations.
     detrended_df = detrended_df.dropna()
 
