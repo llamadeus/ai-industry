@@ -17,6 +17,7 @@ nbdime = "^4.0.2"
 scikit-learn = "^1.5.2"
 jedi = "^0.19.2"
 ipython = "^8.29.0"
+tensorflow = "^2.18.0"
 
 
 [build-system]
