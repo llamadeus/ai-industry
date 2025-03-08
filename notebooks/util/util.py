@@ -21,7 +21,7 @@ figsize = (9, 3)
 best_imputation_method = 'linear'
 best_window_length = 10
 best_aggregation_length = 50
-best_detrending_window_length = 2 * 60  # 2 hours
+best_detrending_window_length = 4 * 60  # 4 hours
 
 
 def load_dataset(filename):
