@@ -400,6 +400,26 @@ def get_predictions_from_log_likelihood(log_likelihood, percentile):
     return y_pred, threshold
 
 
+def get_predictions_from_reconstruction_errors(reconstruction_errors, percentile):
+    """
+    Get the predictions from a log likelihood.
+
+    Parameters:
+        reconstruction_errors (float): The reconstruction errors of a prediction.
+        percentile (float): The percentile to compute the performance for.
+
+    Returns:
+        Tuple[np.ndarray, float]: A tuple containing the predictions and the threshold.
+    """
+    # Compute threshold for this percentile.
+    threshold = np.percentile(reconstruction_errors, percentile)
+
+    # Get anomaly predictions based on this threshold.
+    y_pred = reconstruction_errors > threshold
+
+    return y_pred, threshold
+
+
 def compute_model_performance(y_pred, y_true):
     """
     Compute the performance of a model.
