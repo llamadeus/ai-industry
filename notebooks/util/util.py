@@ -597,5 +597,25 @@ def highlight_contamination(df):
             plt.axvspan(start_time, end_time, color='red', alpha=0.2)
 
 
+def impute_anomalies(df: pd.DataFrame, method: InterpolateOptions = best_imputation_method):
+    """
+    Impute anomalies in a pandas DataFrame using the specified method.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame to impute.
+        method (InterpolateOptions): The imputation method to use. Default is 'linear'.
+
+    Returns:
+        pd.DataFrame: The imputed DataFrame.
+    """
+    # Get feature columns
+    features = get_feature_columns(df)
+
+    # Set values to NaN for anomalies
+    df.loc[df['Event'] == True, features] = np.nan
+
+    return impute_missing_values(df, method=method)
+
+
 def bold(text):
     return f"\033[1m{text}\033[0m"
