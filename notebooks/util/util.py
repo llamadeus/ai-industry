@@ -44,6 +44,19 @@ def load_dataset(filename):
     return raw_data.drop(columns=["Unnamed: 0"])  # The index was stored as an unnamed column
 
 
+def split_xy(df):
+    """
+    Split the dataset into features and labels.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame to split.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.Series]: The split dataset.
+    """
+    return df.drop(columns=["Event"]), df['Event']
+
+
 def load_dataset_xy(filename, preprocess=None):
     """
     Load the dataset from a CSV file.
