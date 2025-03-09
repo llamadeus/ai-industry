@@ -556,5 +556,46 @@ def pick_history_keys(history, keys_to_keep):
     return new_history
 
 
+def highlight_contamination(df):
+    """
+    Highlights the contamination periods in the current figure.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame to highlight.
+    """
+    # If the 'Event' column exists, add red vertical spans for contamination periods.
+    if 'Event' in df.columns:
+        # Reset index to use row positions for grouping contiguous events,
+        # while retaining the original datetime values in the 'index' column.
+        df_reset = df.reset_index()
+        # Identify positions where contamination occurred
+        event_positions = df_reset.index[df_reset['Event'] == True]
+
+        if not event_positions.empty:
+            # Initialize the start and end positions of the current contiguous group
+            group_start = event_positions[0]
+            group_end = event_positions[0]
+
+            # Iterate over subsequent event positions to group contiguous events
+            for pos in event_positions[1:]:
+                # If the current position is exactly one more than the last (i.e. contiguous row)
+                if pos == group_end + 1:
+                    group_end = pos
+                else:
+                    # Draw the vertical span for the current group
+                    start_time = df_reset.loc[group_start, 'Time']
+                    end_time = df_reset.loc[group_end, 'Time']
+                    plt.axvspan(start_time, end_time, color='red', alpha=0.2)
+
+                    # Start a new group
+                    group_start = pos
+                    group_end = pos
+
+            # Draw the final group
+            start_time = df_reset.loc[group_start, 'Time']
+            end_time = df_reset.loc[group_end, 'Time']
+            plt.axvspan(start_time, end_time, color='red', alpha=0.2)
+
+
 def bold(text):
     return f"\033[1m{text}\033[0m"
