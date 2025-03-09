@@ -78,14 +78,7 @@ def load_dataset_xy(filename, preprocess=None):
     for func in preprocess:
         raw_data = func(raw_data)
 
-    # Get feature columns
-    feature_columns = get_feature_columns(raw_data)
-
-    # Split data into features and labels
-    X = raw_data[feature_columns]
-    y = raw_data['Event']
-
-    return X, y
+    return split_xy(raw_data)
 
 
 def find_best_segment_in_series(series, max_missing):
