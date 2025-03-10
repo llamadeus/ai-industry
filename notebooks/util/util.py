@@ -637,5 +637,20 @@ def impute_anomalies(df: pd.DataFrame, method: InterpolateOptions = best_imputat
     return impute_missing_values(df, method=method)
 
 
+def plot_bars(data, figsize=None, tick_gap=1, series=None, title=None,
+              xlabel=None, ylabel=None, std=None):
+    plt.figure(figsize=figsize)
+    x = data.index
+    plt.bar(x, data, width=0.7, yerr=std)
+    if series is not None:
+        plt.plot(series.index, series, color='tab:orange')
+    if tick_gap > 0:
+        plt.xticks(x[::tick_gap], data.index[::tick_gap])
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.show()
+
+
 def bold(text):
     return f"\033[1m{text}\033[0m"
